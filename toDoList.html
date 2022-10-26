@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="jquery.min.js"></script>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        .wrapper {
+            width: 800px;
+            border: 1px solid maroon;
+            background-color: #ccc;
+            margin: auto;
+        }
+
+        .header {
+            height: 40px;
+            background-color: grey;
+            line-height: 40px;
+            color: #eee;
+            text-align: center;
+        }
+
+        .header #add {
+            border: 1px solid #eee;
+            border-radius: 3px;
+            margin-left: 100px;
+        }
+
+        h3 {
+            position: relative;
+        }
+
+        span {
+            border: 2px solid seagreen;
+            border-radius: 5px;
+            position: absolute;
+            right: 5px;
+            top: 10px;
+            width: 15px;
+            height: 15px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        li {
+            background-color: #fff;
+            margin: 5px;
+            list-style: none;
+            border-left: 2px solid green;
+            height: 25px;
+            position: relative;
+        }
+
+        li>input {
+            width: 15px;
+            height: 15px;
+            position: absolute;
+            top: 5px;
+            left: 0;
+        }
+
+        li>p {
+            position: absolute;
+            top: 2px;
+            left: 25px;
+        }
+
+        li>p,
+        li>a {
+            display: inline-block;
+        }
+
+        li>a {
+            border: 1px solid #bbb;
+            width: 15px;
+            height: 10px;
+            border-radius: 7px;
+            position: absolute;
+            top: 5px;
+            right: 0;
+        }
+
+        .past>ul>li {
+            background-color: #aaa;
+        }
+
+        .main,
+        .footer {
+            width: 350px;
+            margin: auto;
+        }
+
+        .footer {
+            margin-top: 10px;
+            color: #aaa;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="header">
+            <span>ToDoList</span>
+            <input type="text" name="" id="add" placeholder="todolist">
+        </div>
+        <div class="main">
+            <div class="now">
+                <h3>正在进行<span id="nowcount"></span></h3>
+
+                <ol></ol>
+            </div>
+            <div class="past">
+                <h3>已经完成<span id="pastcount"></span></h3>
+
+                <ul></ul>
+            </div>
+
+        </div>
+        <div class="footer">
+            Copyright&copy; 2022 todolist.cn
+        </div>
+    </div>
+    <script>
+        load();
+        //输入内容，按下回车键后存储到本地列表
+        //存储数据格式 todolist=[{title:'xx',done:false}]
+        $('#add').on('keydown', function (event) {
+            if (event.keyCode === 13) {
+                if ($(this).val() === '') {
+                    alert('please input something');
+                } else {
+                    //先读取原有数据
+                    //声明一个数组，保存读取到的数据
+                    var local = getData();
+                    // console.log(local);
+                    //把local数组更新，添加input输入的最新数据
+                    local.push({ title: $(this).val(), done: false });
+                    //把local数组本地存储
+                    saveData(local);
+                    //加载数据
+                    load();
+                }
+            }
+        })
+        //删除数据
+        $('ol,ul').on('click', 'a', function () {
+            //先获取本地列表
+            var data = getData();
+            //修改数据
+            var index = $(this).attr('id');
+            data.splice(index, 1);
+            //重新保存 
+            saveData(data);
+            //重新渲染页面
+            load();
+        })
+        //复选框操作
+        $('ol,ul').on('click', 'input', function () {
+            //获取数据
+            var data = getData();
+            //修改数据
+            var index = $(this).siblings('a').attr('id');
+            data[index].done = $(this).prop('checked');
+            //重新保存
+            saveData(data);
+            //重新渲染页面
+            load();
+        })
+        //读取本地存储数据,数组格式
+        function getData() {
+            var data = localStorage.getItem('todolist');
+            if (data !== null) {
+                //存储数据为字符串格式，需要转换为对象格式获取出来
+                return JSON.parse(data);
+            } else {
+                return [];
+            }
+        }
+        //保存本地存储数据,字符串格式
+        function saveData(data) {
+            localStorage.setItem('todolist', JSON.stringify(data));
+            $('#add').val('');
+        }
+        //渲染加载数据
+        function load() {
+            //先读取数据
+            var data = getData();
+            //遍历之前先清空列表数据,避免添加新数据的时候出现重复
+            $('ul,ol').empty();
+            //计数
+            var nowcount = 0;
+            var pastcount = 0;
+            //再遍历这个数据
+            $.each(data, function (i, n) {
+                // console.log(n);
+                //添加数据
+                if (n.done) {
+                    $('ul').prepend('<li><input type="checkbox" checked="checked"><p>' + n.title + '</p><a href="javascript:;" id="' + i + '"></a></li>');
+                    pastcount++;
+                } else {
+                    $('ol').prepend('<li><input type="checkbox"><p>' + n.title + '</p><a href="javascript:;" id="' + i + '"></a></li>');
+                    nowcount++;
+                }
+                $('#nowcount').text(nowcount);
+                $('#pastcount').text(pastcount);
+            })
+        }
+    </script>
+</body>
+
+</html>
